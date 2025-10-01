@@ -487,6 +487,12 @@ main {
   }
 }
 
+/* Mobile Hero Layout */
+@media (max-width: 767px) {
+  .hero-image {
+    display: none;
+  }
+}
 
 /* Desktop Hero Layout */
 @media (min-width: 768px) {
@@ -1946,6 +1952,41 @@ body {
   white-space: nowrap;
 }
 
+/* Technologies Footer */
+.technologies-footer {
+  text-align: center;
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 2px solid #000;
+}
+
+.technologies-details-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--color-white);
+  border: 2px solid #000;
+  border-bottom: 4px solid #000;
+  border-radius: 20px;
+  font-family: var(--font-primary);
+  font-size: 13px;
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #000;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  max-width: 180px;
+  margin: 0 auto;
+}
+
+.technologies-details-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 /* Responsive - Tablet */
 @media (min-width: 768px) {
   .process-grid {
@@ -2128,6 +2169,71 @@ body {
   max-width: 200px;
   margin: 0 auto;
   display: block;
+}
+
+/* Contact Alternative Section */
+.contact-alternative {
+  text-align: center;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 2px solid #000;
+}
+
+.or-divider {
+  margin-bottom: 16px;
+}
+
+.or-divider span {
+  font-family: var(--font-primary);
+  font-size: 18px;
+  font-weight: var(--font-weight-bold);
+  color: #666;
+  text-transform: lowercase;
+  position: relative;
+}
+
+.or-divider span::before,
+.or-divider span::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40px;
+  height: 1px;
+  background-color: #ccc;
+}
+
+.or-divider span::before {
+  left: -50px;
+}
+
+.or-divider span::after {
+  right: -50px;
+}
+
+.alternative-text {
+  font-family: var(--font-primary);
+  font-size: 16px;
+  font-weight: var(--font-weight-normal);
+  color: #333;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.call-now-btn {
+  background-color: #000000;
+  color: #fff;
+  border-color: var(--color-red);
+  font-size: 18px;
+  padding: 16px 32px;
+  max-width: 200px;
+  margin: 0 auto;
+  font-weight: var(--font-weight-bold);
+}
+
+.call-now-btn:hover {
+  background-color: #000000;
+  border-color: var(--color-red);
+  transform: translateY(-2px);
 }
 
 /* Footer Section (Lavender Background - Bottom Half) */

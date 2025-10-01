@@ -44,11 +44,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const whatsappNumber = '919391902320';
       
       // Create WhatsApp message
-      const whatsappMessage = `*New Contact Form Submission*%0A%0A` +
-                             `*Name:* ${encodeURIComponent(name)}%0A` +
-                             `*Phone:* ${encodeURIComponent(phone)}%0A%0A` +
-                             `*Message:*%0A${encodeURIComponent(message)}`;
-      
+      const whatsappMessage = `New Contact Form Submission%0A%0A` +
+                             `Name: ${encodeURIComponent(name)}%0A` +
+                             `Phone: ${encodeURIComponent(phone)}%0A%0A` +
+                             `Message: %0A${encodeURIComponent(message)}`;
       // Open WhatsApp with the message
       window.open(`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`, '_blank');
       
@@ -182,16 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
       window.requestAnimationFrame(function() {
         const scrolled = window.pageYOffset;
         
-        // Parallax for hero section
-        const heroSection = document.querySelector('.hero');
-        if (heroSection) {
-          const heroImage = heroSection.querySelector('.hero-image');
-          if (heroImage) {
-            heroImage.style.transform = `translateY(${scrolled * 0.3}px)`;
-          }
-        }
-        
-        // Parallax for services section
+        // Services section parallax removed for cleaner design
         const servicesSection = document.querySelector('.services');
         if (servicesSection) {
           const servicesCards = servicesSection.querySelectorAll('.service-card');
@@ -263,3 +253,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+// Call Now functionality
+function initiateCall() {
+  // You can customize this function based on your needs
+  // For example, you could:
+  // 1. Open a phone dialer with a specific number
+  // 2. Start a video call
+  // 3. Open WhatsApp
+  // 4. Show a modal with contact information
+
+  // Example: Open phone dialer (replace with your actual number)
+  const phoneNumber = '+919391902320'; // Replace with your actual phone number
+  window.open(`tel:${phoneNumber}`, '_self');
+
+  // Alternative: Show a message or modal
+  // alert('Call us at: +91 81792 36829');
+
+  // Alternative: Open WhatsApp
+  // window.open('https://wa.me/919391902320?text=Hi%2C%20I%20would%20like%20to%20discuss%20a%20project', '_blank');
+}
+
+// Open Tech Modal functionality
+function openTechModal() {
+  const techModal = document.getElementById('techModal');
+  if (techModal) {
+    techModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
