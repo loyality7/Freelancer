@@ -1,0 +1,123 @@
+/* ============================================
+   THEME CONFIGURATION
+   Cabinet Grotesk Typography & Custom Colors
+   ============================================ */
+
+/* Import Cabinet Grotesk Font */
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("https://framerusercontent.com/third-party-assets/fontshare/wf/XMXWOHABYLQDJ42L65EFRYNVRY37HQCB/B2O4O6V3JMFM2WDCYQI3A47L5U4THDUL/WN5274VQ3AUBDFP74GB4EC4XYJ3EKVNE.woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* ============================================
+   CSS VARIABLES - THEME COLORS & TYPOGRAPHY
+   ============================================ */
+
+:root {
+  /* Primary Colors */
+  --color-primary: rgb(117, 117, 200);
+  --color-white: #FFFFFF;
+  --color-lavender: #E3E3FF;
+  --color-lime: #F3FFE3;
+  --color-pink: #FDE4F9;
+  --color-blue: #E3F2FF;
+  
+  /* Typography */
+  --font-primary: "Cabinet Grotesk", "Cabinet Grotesk Placeholder", sans-serif;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  
+  /* Font Sizes */
+  --font-size-base: 19px;
+  --font-size-sm: 16px;
+  --font-size-lg: 24px;
+  --font-size-xl: 32px;
+  --font-size-2xl: 48px;
+  --font-size-3xl: 64px;
+  
+  /* Line Heights */
+  --line-height-base: 19px;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* Spacing */
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+  --spacing-2xl: 64px;
+  --spacing-3xl: 96px;
+  
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  background-color: var(--color-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Background Colors */
+.bg-white { background-color: var(--color-white); }
+.bg-primary { background-color: var(--color-primary); }
+.bg-lavender { background-color: var(--color-lavender); }
+.bg-lime { background-color: var(--color-lime); }
+.bg-pink { background-color: var(--color-pink); }
+.bg-blue { background-color: var(--color-blue); }
+
+/* Text Colors */
+.text-white { color: var(--color-white); }
+.text-primary { color: var(--color-primary); }
+.text-lavender { color: var(--color-lavender); }
+.text-lime { color: var(--color-lime); }
+.text-pink { color: var(--color-pink); }
+.text-blue { color: var(--color-blue); }
+
+/* Font Weights */
+.font-normal { font-weight: var(--font-weight-normal); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-bold { font-weight: var(--font-weight-bold); }
+.font-extrabold { font-weight: var(--font-weight-extrabold); }
+
+/* Font Sizes */
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+.text-3xl { font-size: var(--font-size-3xl); }
