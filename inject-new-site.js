@@ -1,13 +1,48 @@
 'use strict';
 
 const NEW_SITE_HTML_URL = 'https://raw.githubusercontent.com/loyality7/sarath/main/index.html';
-const NEW_CSS_URL       = 'https://loyality7.github.io/sarath/css/style.css';
-const NEW_JS_URL        = 'https://loyality7.github.io/sarath/js/main.js';
+const NEW_CSS_URL       = 'https://raw.githubusercontent.com/loyality7/sarath/main/css/style.css';
+const NEW_JS_URL        = 'https://raw.githubusercontent.com/loyality7/sarath/main/js/main.js';
+const ANIME_JS_URL      = 'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js';
+
+function injectStylesheet(href) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`link[href="${href}"]`)) return resolve();
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.onload = resolve;
+    link.onerror = () => reject(new Error('CSS failed: ' + href));
+    document.head.appendChild(link);
+  });
+}
+
+function injectScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) return resolve();
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('JS failed: ' + src));
+    document.body.appendChild(s);
+  });
+}
+
+function pickNodes(html) {
+  const parser  = new DOMParser();
+  const doc     = parser.parseFromString(html, 'text/html');
+  const ids     = ['boot-screen','app','scanlines','noise-canvas','matrix-canvas','konami-flash','cursor-art','bg-canvas'];
+  const picked  = {};
+  ids.forEach(id => {
+    const el = doc.getElementById(id);
+    if (el) picked[id] = el.cloneNode(true);
+  });
+  return picked;
+}
 
 function initSwitch() {
   const btn   = document.getElementById('switch-btn');
   const modal = document.getElementById('new-site-modal');
-
   if (!btn || !modal) {
     console.error('[INJECT] switch-btn or new-site-modal not found');
     return;
@@ -15,78 +50,36 @@ function initSwitch() {
 
   btn.addEventListener('click', () => {
     btn.style.display = 'none';
-
-    /* Show loading */
     modal.style.display = 'block';
-    modal.innerHTML = '<pre style="color:#00ff41;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:14px;text-shadow:0 0 8px rgba(0,255,65,.6);">LOADING SARATH.OS...\n> initializing core modules</pre>';
+    modal.style.overflowY = 'auto';
+    modal.innerHTML = '<pre style="color:#00ff41;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;text-shadow:0 0 6px rgba(0,255,65,.5);">LOADING SARATH.OS...\n> FETCHING CORE</pre>';
 
-    /* Step 1: Load CSS immediately so styles exist before HTML renders */
-    const loadCSS = () => new Promise((resolve, reject) => {
-      if (document.getElementById('new-site-css')) return resolve();
-      const link = document.createElement('link');
-      link.id = 'new-site-css';
-      link.rel = 'stylesheet';
-      link.href = NEW_CSS_URL;
-      link.onload = resolve;
-      link.onerror = () => reject(new Error('CSS load failed: ' + NEW_CSS_URL));
-      document.head.appendChild(link);
-    });
-
-    /* Step 2: Load HTML */
-    const loadHTML = () => fetch(NEW_SITE_HTML_URL)
+    Promise.resolve()
+      .then(() => injectStylesheet(NEW_CSS_URL))
+      .then(() => injectScript(ANIME_JS_URL))
+      .then(() => fetch(NEW_SITE_HTML_URL))
       .then(r => {
         if (!r.ok) throw new Error('HTML fetch failed: ' + r.status);
         return r.text();
       })
       .then(html => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        return {
-          bootScreen: doc.getElementById('boot-screen')?.cloneNode(true),
-          app:        doc.getElementById('app')?.cloneNode(true),
-        };
-      });
-
-    /* Step 3: Append HTML to modal */
-    const injectHTML = ({ bootScreen, app }) => {
-      modal.innerHTML = '';
-      if (bootScreen) modal.appendChild(bootScreen);
-      if (app)        modal.appendChild(app);
-      /* Force hidden until boot finishes */
-      const appEl = modal.querySelector('#app');
-      if (appEl) appEl.style.opacity = '0';
-    };
-
-    /* Step 4: Load JS */
-    const loadJS = () => new Promise((resolve, reject) => {
-      if (document.getElementById('new-site-js')) return resolve();
-      const s = document.createElement('script');
-      s.id = 'new-site-js';
-      s.src = NEW_JS_URL;
-      s.onload = resolve;
-      s.onerror = () => reject(new Error('JS load failed: ' + NEW_JS_URL));
-      document.body.appendChild(s);
-    });
-
-    /* Step 5: Wire anchor links */
-    const wireLinks = () => {
-      modal.querySelectorAll('a[href^="#"]').forEach(a => {
-        a.addEventListener('click', e => {
-          e.preventDefault();
-          const t = modal.querySelector(a.getAttribute('href'));
-          if (t) t.scrollIntoView({ behavior: 'smooth' });
+        const nodes = pickNodes(html);
+        modal.innerHTML = '';
+        const order = ['boot-screen','app','scanlines','noise-canvas','matrix-canvas','konami-flash','cursor-art','bg-canvas'];
+        order.forEach(id => { if (nodes[id]) modal.appendChild(nodes[id]); });
+      })
+      .then(() => injectScript(NEW_JS_URL))
+      .then(() => {
+        modal.querySelectorAll('a[href^="#"]').forEach(a => {
+          a.addEventListener('click', e => {
+            e.preventDefault();
+            const t = modal.querySelector(a.getAttribute('href'));
+            if (t) t.scrollIntoView({ behavior: 'smooth' });
+          });
         });
-      });
-    };
-
-    /* Chain: CSS first, then HTML, then JS */
-    loadCSS()
-      .then(loadHTML)
-      .then(injectHTML)
-      .then(loadJS)
-      .then(wireLinks)
+      })
       .catch(err => {
-        modal.innerHTML = `<pre style="color:#ff2d55;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;">ERROR: ${err.message}\n\n> FALLBACK LINK:\n> https://loyality7.github.io/sarath/</pre>`;
+        modal.innerHTML = '<pre style="color:#ff2d55;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;">ERROR: ' + err.message + '\n\n> CHECK: sarath repo index.html exists at path main/\n> OPEN MANUALLY: https://github.com/loyality7/sarath</pre>';
       });
   });
 }
