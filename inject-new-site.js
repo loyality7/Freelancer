@@ -15,81 +15,78 @@ function initSwitch() {
 
   btn.addEventListener('click', () => {
     btn.style.display = 'none';
+
+    /* Show loading */
     modal.style.display = 'block';
-    modal.innerHTML = '<pre style="color:#00ff41;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;">LOADING SARATH.OS...</pre>';
+    modal.innerHTML = '<pre style="color:#00ff41;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:14px;text-shadow:0 0 8px rgba(0,255,65,.6);">LOADING SARATH.OS...\n> initializing core modules</pre>';
 
-    const loadStyle = () => {
-      return new Promise((resolve, reject) => {
-        if (document.getElementById('new-site-css')) return resolve();
-        const link = document.createElement('link');
-        link.id = 'new-site-css';
-        link.rel = 'stylesheet';
-        link.href = NEW_CSS_URL;
-        link.onload = resolve;
-        link.onerror = reject;
-        document.head.appendChild(link);
-      });
-    };
+    /* Step 1: Load CSS immediately so styles exist before HTML renders */
+    const loadCSS = () => new Promise((resolve, reject) => {
+      if (document.getElementById('new-site-css')) return resolve();
+      const link = document.createElement('link');
+      link.id = 'new-site-css';
+      link.rel = 'stylesheet';
+      link.href = NEW_CSS_URL;
+      link.onload = resolve;
+      link.onerror = () => reject(new Error('CSS load failed: ' + NEW_CSS_URL));
+      document.head.appendChild(link);
+    });
 
-    const loadJS = () => {
-      return new Promise((resolve, reject) => {
-        if (document.getElementById('new-site-js')) return resolve();
-        const s = document.createElement('script');
-        s.id = 'new-site-js';
-        s.src = NEW_JS_URL;
-        s.onload = resolve;
-        s.onerror = reject;
-        document.body.appendChild(s);
-      });
-    };
-
-    fetch(NEW_SITE_HTML_URL)
-      .then(r => r.text())
+    /* Step 2: Load HTML */
+    const loadHTML = () => fetch(NEW_SITE_HTML_URL)
+      .then(r => {
+        if (!r.ok) throw new Error('HTML fetch failed: ' + r.status);
+        return r.text();
+      })
       .then(html => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-
-        const pick = (id) => {
-          const el = doc.getElementById(id);
-          if (!el) return null;
-          return el.cloneNode(true);
+        return {
+          bootScreen: doc.getElementById('boot-screen')?.cloneNode(true),
+          app:        doc.getElementById('app')?.cloneNode(true),
         };
+      });
 
-        const nodes = [
-          pick('boot-screen'),
-          pick('app'),
-          pick('scanlines'),
-          pick('noise-canvas'),
-          pick('matrix-canvas'),
-          pick('konami-flash'),
-          pick('cursor-art'),
-          pick('bg-canvas'),
-        ].filter(Boolean);
+    /* Step 3: Append HTML to modal */
+    const injectHTML = ({ bootScreen, app }) => {
+      modal.innerHTML = '';
+      if (bootScreen) modal.appendChild(bootScreen);
+      if (app)        modal.appendChild(app);
+      /* Force hidden until boot finishes */
+      const appEl = modal.querySelector('#app');
+      if (appEl) appEl.style.opacity = '0';
+    };
 
-        nodes.forEach(n => modal.appendChild(n));
+    /* Step 4: Load JS */
+    const loadJS = () => new Promise((resolve, reject) => {
+      if (document.getElementById('new-site-js')) return resolve();
+      const s = document.createElement('script');
+      s.id = 'new-site-js';
+      s.src = NEW_JS_URL;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('JS load failed: ' + NEW_JS_URL));
+      document.body.appendChild(s);
+    });
 
-        doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-          if (!document.querySelector(`link[href="${link.href}"]`)) {
-            const c = document.createElement('link');
-            c.rel = 'stylesheet';
-            c.href = link.href;
-            document.head.appendChild(c);
-          }
+    /* Step 5: Wire anchor links */
+    const wireLinks = () => {
+      modal.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+          e.preventDefault();
+          const t = modal.querySelector(a.getAttribute('href'));
+          if (t) t.scrollIntoView({ behavior: 'smooth' });
         });
+      });
+    };
 
-        return loadStyle().then(loadJS);
-      })
-      .then(() => {
-        modal.querySelectorAll('a[href^="#"]').forEach(a => {
-          a.addEventListener('click', e => {
-            e.preventDefault();
-            const target = document.querySelector(a.getAttribute('href'));
-            if (target) target.scrollIntoView({ behavior: 'smooth' });
-          });
-        });
-      })
+    /* Chain: CSS first, then HTML, then JS */
+    loadCSS()
+      .then(loadHTML)
+      .then(injectHTML)
+      .then(loadJS)
+      .then(wireLinks)
       .catch(err => {
-        modal.innerHTML = `<pre style="color:#ff2d55;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;">ERROR LOADING NEW SITE\n\n${err.message}\n\n> OPEN MANUALLY: https://loyality7.github.io/sarath/</pre>`;
+        modal.innerHTML = `<pre style="color:#ff2d55;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;">ERROR: ${err.message}\n\n> FALLBACK LINK:\n> https://loyality7.github.io/sarath/</pre>`;
       });
   });
 }
