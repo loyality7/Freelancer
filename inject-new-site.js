@@ -5,15 +5,14 @@ const NEW_CSS_URL       = 'https://raw.githubusercontent.com/loyality7/sarath/ma
 const NEW_JS_URL        = 'https://raw.githubusercontent.com/loyality7/sarath/main/js/main.js';
 const ANIME_JS_URL      = 'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js';
 
-function injectStylesheet(href) {
+function injectStyleText(cssText) {
   return new Promise((resolve, reject) => {
-    if (document.querySelector(`link[href="${href}"]`)) return resolve();
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    link.onload = resolve;
-    link.onerror = () => reject(new Error('CSS failed: ' + href));
-    document.head.appendChild(link);
+    if (document.getElementById('new-site-style')) return resolve();
+    const style = document.createElement('style');
+    style.id = 'new-site-style';
+    style.textContent = cssText;
+    document.head.appendChild(style);
+    resolve();
   });
 }
 
@@ -29,10 +28,10 @@ function injectScript(src) {
 }
 
 function pickNodes(html) {
-  const parser  = new DOMParser();
-  const doc     = parser.parseFromString(html, 'text/html');
-  const ids     = ['boot-screen','app','scanlines','noise-canvas','matrix-canvas','konami-flash','cursor-art','bg-canvas'];
-  const picked  = {};
+  const parser = new DOMParser();
+  const doc    = parser.parseFromString(html, 'text/html');
+  const ids    = ['boot-screen','app','scanlines','noise-canvas','matrix-canvas','konami-flash','cursor-art','bg-canvas'];
+  const picked = {};
   ids.forEach(id => {
     const el = doc.getElementById(id);
     if (el) picked[id] = el.cloneNode(true);
@@ -52,10 +51,15 @@ function initSwitch() {
     btn.style.display = 'none';
     modal.style.display = 'block';
     modal.style.overflowY = 'auto';
-    modal.innerHTML = '<pre style="color:#00ff41;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;text-shadow:0 0 6px rgba(0,255,65,.5);">LOADING SARATH.OS...\n> FETCHING CORE</pre>';
+    modal.innerHTML = '<pre style="color:#00ff41;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;text-shadow:0 0 6px rgba(0,255,65,.5);">LOADING SARATH.OS...\n> FETCHING CORE MODULES</pre>';
 
     Promise.resolve()
-      .then(() => injectStylesheet(NEW_CSS_URL))
+      .then(() => fetch(NEW_CSS_URL))
+      .then(r => {
+        if (!r.ok) throw new Error('CSS fetch failed: ' + r.status);
+        return r.text();
+      })
+      .then(css => injectStyleText(css))
       .then(() => injectScript(ANIME_JS_URL))
       .then(() => fetch(NEW_SITE_HTML_URL))
       .then(r => {
@@ -79,7 +83,7 @@ function initSwitch() {
         });
       })
       .catch(err => {
-        modal.innerHTML = '<pre style="color:#ff2d55;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;">ERROR: ' + err.message + '\n\n> CHECK: sarath repo index.html exists at path main/\n> OPEN MANUALLY: https://github.com/loyality7/sarath</pre>';
+        modal.innerHTML = '<pre style="color:#ff2d55;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;">ERROR: ' + err.message + '\n\n> sarath repo files must be at:\n> main/css/style.css\n> main/js/main.js\n> main/index.html\n\n> OPEN MANUALLY: https://github.com/loyality7/sarath</pre>';
       });
   });
 }
