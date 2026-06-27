@@ -3,26 +3,28 @@
 const NEW_SITE_HTML_URL = 'https://raw.githubusercontent.com/loyality7/sarath/main/index.html';
 const NEW_CSS_URL       = 'https://raw.githubusercontent.com/loyality7/sarath/main/css/style.css';
 const NEW_JS_URL        = 'https://raw.githubusercontent.com/loyality7/sarath/main/js/main.js';
-const ANIME_JS_URL      = 'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js';
+const ANIME_JS_URL      = 'https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js';
 
-function injectStyleText(cssText) {
-  return new Promise((resolve, reject) => {
-    if (document.getElementById('new-site-style')) return resolve();
-    const style = document.createElement('style');
-    style.id = 'new-site-style';
-    style.textContent = cssText;
-    document.head.appendChild(style);
-    resolve();
+function loadText(url) {
+  return fetch(url).then(r => {
+    if (!r.ok) throw new Error('fetch ' + r.status + ' @ ' + url);
+    return r.text();
   });
+}
+
+function injectStyle(cssText) {
+  const style = document.createElement('style');
+  style.id = 'new-site-css';
+  style.textContent = cssText;
+  document.head.appendChild(style);
 }
 
 function injectScript(src) {
   return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) return resolve();
     const s = document.createElement('script');
     s.src = src;
     s.onload = resolve;
-    s.onerror = () => reject(new Error('JS failed: ' + src));
+    s.onerror = () => reject(new Error('script blocked: ' + src + ' (check CORS or URL)'));
     document.body.appendChild(s);
   });
 }
@@ -30,7 +32,7 @@ function injectScript(src) {
 function pickNodes(html) {
   const parser = new DOMParser();
   const doc    = parser.parseFromString(html, 'text/html');
-  const ids    = ['boot-screen','app','scanlines','noise-canvas','matrix-canvas','konami-flash','cursor-art','bg-canvas'];
+  const ids    = ['boot-screen','app','scanlines','noise-canvas','matrix-canvas','konami-flash','bg-canvas'];
   const picked = {};
   ids.forEach(id => {
     const el = doc.getElementById(id);
@@ -43,7 +45,7 @@ function initSwitch() {
   const btn   = document.getElementById('switch-btn');
   const modal = document.getElementById('new-site-modal');
   if (!btn || !modal) {
-    console.error('[INJECT] switch-btn or new-site-modal not found');
+    console.error('[INJECT] button or modal not found');
     return;
   }
 
@@ -54,23 +56,16 @@ function initSwitch() {
     modal.innerHTML = '<pre style="color:#00ff41;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;text-shadow:0 0 6px rgba(0,255,65,.5);">LOADING SARATH.OS...\n> FETCHING CORE MODULES</pre>';
 
     Promise.resolve()
-      .then(() => fetch(NEW_CSS_URL))
-      .then(r => {
-        if (!r.ok) throw new Error('CSS fetch failed: ' + r.status);
-        return r.text();
-      })
-      .then(css => injectStyleText(css))
+      .then(() => loadText(NEW_CSS_URL))
+      .then(css => { injectStyle(css); })
       .then(() => injectScript(ANIME_JS_URL))
-      .then(() => fetch(NEW_SITE_HTML_URL))
-      .then(r => {
-        if (!r.ok) throw new Error('HTML fetch failed: ' + r.status);
-        return r.text();
-      })
+      .then(() => loadText(NEW_SITE_HTML_URL))
       .then(html => {
         const nodes = pickNodes(html);
         modal.innerHTML = '';
-        const order = ['boot-screen','app','scanlines','noise-canvas','matrix-canvas','konami-flash','cursor-art','bg-canvas'];
-        order.forEach(id => { if (nodes[id]) modal.appendChild(nodes[id]); });
+        ['boot-screen','app','scanlines','noise-canvas','matrix-canvas','konami-flash','bg-canvas'].forEach(id => {
+          if (nodes[id]) modal.appendChild(nodes[id]);
+        });
       })
       .then(() => injectScript(NEW_JS_URL))
       .then(() => {
@@ -83,7 +78,8 @@ function initSwitch() {
         });
       })
       .catch(err => {
-        modal.innerHTML = '<pre style="color:#ff2d55;text-align:center;padding:40vh 20px;font-family:Share Tech Mono,monospace;font-size:13px;">ERROR: ' + err.message + '\n\n> sarath repo files must be at:\n> main/css/style.css\n> main/js/main.js\n> main/index.html\n\n> OPEN MANUALLY: https://github.com/loyality7/sarath</pre>';
+        modal.innerHTML = '<pre style="color:#ff2d55;text-align:center;padding:30vh 20px;font-family:Share Tech Mono,monospace;font-size:12px;">ERROR: ' + err.message + '\n\n> REQUIRED FILES IN sarath REPO:\n>   main/css/style.css\n>   main/js/main.js\n>   main/index.html\n\n> CHECK: https://github.com/loyality7/sarath\n> RAW:   https://github.com/loyality7/sarath/tree/main</pre>';
+        console.error('[INJECT]', err);
       });
   });
 }
