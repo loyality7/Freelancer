@@ -19,13 +19,19 @@ function injectStyle(cssText) {
   document.head.appendChild(style);
 }
 
-function injectScript(src) {
+function injectBlobScript(text) {
   return new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload = resolve;
-    s.onerror = () => reject(new Error('script blocked: ' + src + ' (check CORS or URL)'));
-    document.body.appendChild(s);
+    try {
+      const blob = new Blob([text], { type: 'application/javascript' });
+      const url  = URL.createObjectURL(blob);
+      const s    = document.createElement('script');
+      s.src = url;
+      s.onload = () => { URL.revokeObjectURL(url); resolve(); };
+      s.onerror = () => { URL.revokeObjectURL(url); reject(new Error('script blob load failed')); };
+      document.body.appendChild(s);
+    } catch (e) {
+      reject(new Error('blob create failed: ' + e.message));
+    }
   });
 }
 
@@ -57,8 +63,8 @@ function initSwitch() {
 
     Promise.resolve()
       .then(() => loadText(NEW_CSS_URL))
-      .then(css => { injectStyle(css); })
-      .then(() => injectScript(ANIME_JS_URL))
+      .then(css => injectStyle(css))
+      .then(() => injectBlobScript(ANIME_JS_URL))
       .then(() => loadText(NEW_SITE_HTML_URL))
       .then(html => {
         const nodes = pickNodes(html);
@@ -67,7 +73,8 @@ function initSwitch() {
           if (nodes[id]) modal.appendChild(nodes[id]);
         });
       })
-      .then(() => injectScript(NEW_JS_URL))
+      .then(() => loadText(NEW_JS_URL))
+      .then(jsText => injectBlobScript(jsText))
       .then(() => {
         modal.querySelectorAll('a[href^="#"]').forEach(a => {
           a.addEventListener('click', e => {
@@ -78,7 +85,7 @@ function initSwitch() {
         });
       })
       .catch(err => {
-        modal.innerHTML = '<pre style="color:#ff2d55;text-align:center;padding:30vh 20px;font-family:Share Tech Mono,monospace;font-size:12px;">ERROR: ' + err.message + '\n\n> REQUIRED FILES IN sarath REPO:\n>   main/css/style.css\n>   main/js/main.js\n>   main/index.html\n\n> CHECK: https://github.com/loyality7/sarath\n> RAW:   https://github.com/loyality7/sarath/tree/main</pre>';
+        modal.innerHTML = '<pre style="color:#ff2d55;text-align:center;padding:30vh 20px;font-family:Share Tech Mono,monospace;font-size:12px;">ERROR: ' + err.message + '\n\n> sarath repo needs:\n>   main/css/style.css\n>   main/js/main.js\n>   main/index.html\n\n> https://github.com/loyality7/sarath</pre>';
         console.error('[INJECT]', err);
       });
   });
